@@ -38,8 +38,8 @@ threadpool::threadpool(int Size) {
     for(int i = 0;i<Size;i++) {
         pthread_create(&temp_ptd,nullptr,worker,this);
         threads.push_back(temp_ptd);
-        printf("Thread %ld was created\n",pthread_self());
     }
+    printf("Created %d threads for service\n",Size);
     Stop = false;
     threadsActive = 0;
 }
