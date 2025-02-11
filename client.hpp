@@ -24,7 +24,7 @@ class CommandLine
 {
 public:
     CommandLine() { 
-        pos_echo = 5;
+        pos_echo = 1;
         pthread_mutex_init(&mutex,nullptr);
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -60,10 +60,10 @@ void CommandLine::echo(string data) {
     pthread_mutex_lock(&mutex);
     printf("\033[%dH", pos_echo);
     printf("%s",data.data());
-    pos_echo ++;
+    // pos_echo ++;
     if(pos_echo >= max_pos_echo) {
         system("clear");
-        pos_echo = 5;
+        pos_echo = 1;
     }
     moveCursor();
     pthread_mutex_unlock(&mutex);
@@ -72,6 +72,10 @@ void CommandLine::echo(string data) {
 void CommandLine::parse() {
     if(data == "LIST") {
         echo("服务器目录:");
-        send(server_fd,"1",2,0);
+        send(server_fd,"LIST",10,0);
+        char buff[1024] = {};
+        recv(server_fd,buff,1024,0);
+        system("clear");
+        echo(buff);
     }
 }

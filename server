@@ -1,6 +1,9 @@
 #include<iostream>
 #include<arpa/inet.h>
 #include<memory.h>
+#include<sys/epoll.h>
+#include<fcntl.h>
+#include<sys/wait.h>
 
 using namespace std;
 
@@ -18,9 +21,38 @@ int Listen(unsigned int port,int listen_lenth) {
     return sock_fd;
 }
 
-void Accept() {
-    int lfd = Listen(2100,10);
+int Accept(int lfd) {
     sockaddr_in c_sin;
-    socklen_t c_sin_size;
+    socklen_t c_sin_size = sizeof(sockaddr_in);
     int cl_fd = accept(lfd,(sockaddr*)&c_sin,&c_sin_size);
+    if(cl_fd == -1) {
+        perror("accept");
+    }
+    return cl_fd;
+}
+
+void setNOBLOCK(int fd) {
+    int flag = fcntl(fd,F_GETFL);
+    if(flag == -1) {
+        perror("setNOBLOCK:GETFL");
+        return;
+    }
+    if(fcntl(fd,F_SETFL,flag | O_NONBLOCK) == -1) {
+         perror("setNOBLOCK:SETFL");
+         return;
+    };
+}
+
+void LIST(int sock) {
+    int pid = fork();
+    if(pid == 0) {
+        dup2(sock,1);
+        char *argv[] = {(char*)"ls",(char*)"-l",nullptr};
+        execvp("ls",argv);
+        perror("exec");
+        _exit(1);
+    }
+    else {
+        wait(nullptr);
+    }
 }

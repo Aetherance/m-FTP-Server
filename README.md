@@ -54,3 +54,9 @@ PASV：切换到被动模式。
 SFTP（SSH File Transfer Protocol）：基于 SSH 加密。
 
 FTPS（FTP over SSL/TLS）：通过 SSL/TLS 加密 FTP 流量。
+
+# **epoll_create() 传入参数不能为0!!**
+
+# **accept的第三个参数必须提前初始化😅**
+
+# **cout/printf必须刷新缓冲区才能被打印(行缓冲)**
