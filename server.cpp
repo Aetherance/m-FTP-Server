@@ -1,8 +1,8 @@
 #include"threadpool"
-#include"server"
+#include"server_ctl.hpp"
+#include"server_trans.hpp"
 
-threadpool pool(5);
-int main() {
+void serverCtrl() {
     int lfd = Listen(2100,10);
     int epfd = epoll_create(1);
     epoll_event ev;
@@ -10,6 +10,7 @@ int main() {
     ev.events = EPOLLIN;
     setNOBLOCK(lfd);
     epoll_ctl(epfd,EPOLL_CTL_ADD,lfd,&ev);
+
     while (true) {
         epoll_event rev[16];
         int fds = epoll_wait(epfd,rev,16,-1);
@@ -35,10 +36,19 @@ int main() {
                     if(strcmp(buff,"LIST") == 0) {
                         LIST(rev[i].data.fd);
                         log(rev[i].data.fd,"send LIST");
+                    } else if(strcmp(buff,"PORT") == 0) {
+                        log(rev[i].data.fd,"send PORT");
+                        PORT(rev[i].data.fd);
                     }
                 }
             }
         }
-
     }
+}
+
+threadpool pool(5);
+int main() {
+    pool.submit([](){ serverCtrl(); });
+
+    return 0;
 }

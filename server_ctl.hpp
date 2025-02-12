@@ -1,3 +1,5 @@
+#define SERVER_CTL
+
 #include<iostream>
 #include<arpa/inet.h>
 #include<memory.h>
@@ -48,9 +50,13 @@ void log(int fd,const char * event) {
     getpeername(fd,(sockaddr*)&sin,&size);
     char ip[16];
     int port;
-    inet_ntop(AF_INET,(sockaddr*)&sin,ip,sizeof(sockaddr_in));
+    inet_ntop(AF_INET,(sockaddr*)&sin.sin_addr,ip,sizeof(sockaddr_in));
     port = ntohs(sin.sin_port);
     log(ip,port,event);
+}
+
+void log(int fd,string event) {
+    log(fd,event.data());
 }
 
 int Accept(int lfd) {

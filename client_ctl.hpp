@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include<fcntl.h>
 #include<sys/ioctl.h>
+#include<signal.h>
+
 using namespace std;
 
 int server_fd;
@@ -24,28 +26,35 @@ class CommandLine
 {
 public:
     CommandLine() { 
-        pos_echo = 1;
+        pos_echo = 2;
         pthread_mutex_init(&mutex,nullptr);
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
         max_pos_echo = w.ws_row - 5;
+        isPASV = false;
+        isConnected = false;
      }
     void get();
     void echo(string);
     void parse();
+    void setPasv();
+    void setActv();
 
 private:
     void clearLine() { printf("\033[A\033[2K"); }
-    void moveCursor() { printf("\033[9999H"); }
+    void moveCursor() { printf("\033[9999H\033[A\033[A"); }
     string data;
     int pos_echo;
     int max_pos_echo;
     pthread_mutex_t mutex;
+    bool isPASV;
+    bool isConnected;
 };
 
 void CommandLine::get() {
+    system("clear");
     moveCursor();
-    printf("\033[A");
+    printf("\033[A\033[A");
     while(true) {
         cout<<":";
         getline(cin,data);
@@ -57,6 +66,8 @@ void CommandLine::get() {
 }
 
 void CommandLine::echo(string data) {
+    system("clear");
+    cout<<"FTP server    "<<"当前模式  "<<(isPASV ? "被动" : "主动" )<< ":  " <<(isConnected ? "已连接" : "未连接" )<<endl;
     pthread_mutex_lock(&mutex);
     printf("\033[%dH", pos_echo);
     printf("%s",data.data());
@@ -69,12 +80,35 @@ void CommandLine::echo(string data) {
     pthread_mutex_unlock(&mutex);
 }
 
+void Message(const char * msg) {
+    printf("\033[2K\b \b:");
+    printf("\033[A\033[2K%s\n",msg);
+} 
+void Message(string msg) {
+    Message(msg.data());
+}
+
 void CommandLine::parse() {
-    if(data == "LIST") {
+    if(data == "q"||data == "exit") {
+        system("clear");
+        exit(0);
+    }
+    else if(data == "LIST") {
         send(server_fd,"LIST",10,0);
         char buff[1024] = {};
         recv(server_fd,buff,1024,0);
         system("clear");
         echo("服务器目录:\n"+(string)buff);
     }
+    else if(data == "PORT") {
+        send(server_fd,"PORT",10,0);
+        setActv();
+    }
+    else {
+        Message("Command Not Found");
+    }
+}
+
+void quit(int quit) {
+    Message("输入 q 或 exit 退出");
 }
