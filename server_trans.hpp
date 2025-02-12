@@ -22,6 +22,7 @@ void PORT(int sock) {
     getpeername(sock,(sockaddr*)&sin,&size);
     sin.sin_port = htons(port);
     int actv_server_fd = socket(AF_INET,SOCK_STREAM,0);
+    recv(sock,nullptr,0,0);
     connect(actv_server_fd,(sockaddr*)&sin,size);
     string port_str(buff);
     log(sock,"connected in active mode on "+port_str);
