@@ -6,6 +6,7 @@
 #include<fcntl.h>
 #include<sys/ioctl.h>
 #include<signal.h>
+#include<filesystem>
 
 using namespace std;
 
@@ -49,6 +50,7 @@ private:
     pthread_mutex_t mutex;
     bool isPASV;
     bool isConnected;
+    int active_mode_sock;
 };
 
 void CommandLine::get() {
@@ -88,6 +90,8 @@ void Message(string msg) {
     Message(msg.data());
 }
 
+void upload(int,char*);
+
 void CommandLine::parse() {
     if(data == "q"||data == "exit") {
         system("clear");
@@ -103,6 +107,16 @@ void CommandLine::parse() {
     else if(data == "PORT") {
         send(server_fd,"PORT",10,0);
         setActv();
+    }
+    else if(data == "STOR"&&isPASV == false) {
+        string path;
+        Message("请输入文件路径");
+        getline(cin,path);
+        filesystem::path p_parse(path);
+        send(server_fd,"UPLOAD",10,0);
+        upload(active_mode_sock,path.data());
+        send(server_fd,p_parse.filename().string().c_str(),p_parse.filename().string().size(),0);
+        echo("文件上传成功!");
     }
     else {
         Message("Command Not Found");

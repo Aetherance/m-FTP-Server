@@ -37,19 +37,13 @@ void CommandLine::setActv() {
     sockaddr_in c_sin;
     socklen_t len = sizeof(sockaddr_in); // 逆天
     int sock = accept(lfd,(sockaddr*)&c_sin,&len);
-    send(server_fd,"connect",7,0);
     if(sock == -1) {
         perror("accept-client");
     }
     isConnected = true;
     isPASV = false;
+    active_mode_sock = sock;
     echo("");
-    string path;
-    Message("请输入文件路径");
-    getline(cin,path);
-
-    echo("文件上传成功!");
-    upload(sock,path.data());
 }
 
 void CommandLine::setPasv() {

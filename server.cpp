@@ -39,6 +39,13 @@ void serverCtrl() {
                     } else if(strcmp(buff,"PORT") == 0) {
                         log(rev[i].data.fd,"send PORT");
                         PORT(rev[i].data.fd);
+                    } else if(strcmp(buff,"UPLOAD") == 0) {
+                        char filename[50];
+                        while(read(rev[i].data.fd,filename,50) == -1);
+                        string strfilename(filename);
+                        string logmsg = "upload a file named " + strfilename; 
+                        log(rev[i].data.fd,logmsg.data());
+                        receive(actv_map[rev[i].data.fd],filename);
                     }
                 }
             }

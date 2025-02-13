@@ -7,7 +7,12 @@
 #include<fcntl.h>
 #include<sys/wait.h>
 #include<time.h>
+#include<unordered_map>
+#include<filesystem>
+
 using namespace std;
+
+unordered_map<int,int>actv_map;
 
 int Listen(unsigned int port,int listen_lenth) {
     int sock_fd = socket(AF_INET,SOCK_STREAM,0);

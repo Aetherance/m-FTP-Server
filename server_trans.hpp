@@ -3,8 +3,9 @@
 #include"server_ctl.hpp"
 #endif
 
-void receive(int sock) {
-    int fd = open("../root/1",O_WRONLY | O_CREAT | O_APPEND | O_TRUNC , 0644);
+void receive(int sock,string filepath) {
+    filepath = "../root/" + filepath;
+    int fd = open(filepath.data(),O_WRONLY | O_CREAT | O_APPEND | O_TRUNC , 0644);
     char buff[1024];
     int n = 0;
     while ((n = read(sock,buff,1024)) > 0  || n  == -1) {
@@ -22,9 +23,8 @@ void PORT(int sock) {
     getpeername(sock,(sockaddr*)&sin,&size);
     sin.sin_port = htons(port);
     int actv_server_fd = socket(AF_INET,SOCK_STREAM,0);
-    recv(sock,nullptr,0,0);
     connect(actv_server_fd,(sockaddr*)&sin,size);
     string port_str(buff);
     log(sock,"connected in active mode on "+port_str);
-    receive(actv_server_fd);
+    actv_map.insert({sock,actv_server_fd});
 }
