@@ -2,6 +2,7 @@
 
 #include"server_ctl.hpp"
 #endif
+#define UPLOAD_MAX 512000000
 
 void receive(int sock,string filepath) {
     filepath = "../root/" + filepath;
@@ -27,4 +28,14 @@ void PORT(int sock) {
     string port_str(buff);
     log(sock,"connected in active mode on "+port_str);
     actv_map.insert({sock,actv_server_fd});
+}
+
+void sendfileto(int sock,string filepath) {
+    int fd = open(filepath.c_str(),O_RDONLY);
+    if(fd == -1) {
+        perror("sendfile: open");
+    }
+    if(sendfile(sock,fd,nullptr,UPLOAD_MAX) == -1){
+        perror("sendfile");
+    };
 }

@@ -9,6 +9,7 @@
 #include<time.h>
 #include<unordered_map>
 #include<filesystem>
+#include<sys/sendfile.h>
 
 using namespace std;
 

@@ -14,6 +14,17 @@ void upload(int sock,char filepath[]) {
     };
 }
 
+void download(int sock,string filename) {
+    string filepath = "/home/user/CODE/FTP-server/" + filename;
+    int fd = open(filepath.data(),O_RDWR | O_APPEND | O_CREAT | O_EXCL , 0644 );
+    char buff[1024];
+    int n = 0;
+    while ((n = read(sock,buff,1024)) > 0) {
+        write(fd,buff,n);
+    }
+    close(fd);
+}
+
 void CommandLine::setActv() {
     string port;
     Message("主动模式: 输入端口号");
@@ -52,11 +63,3 @@ void CommandLine::setPasv() {
     isPASV = true;
 }
 
-
-void download(int sock,char filepath[]) {
-    int fd = open(filepath,O_RDWR | O_APPEND | O_CREAT | O_EXCL , 0644 );
-    // while (  ) {
-        
-    // }
-    
-}

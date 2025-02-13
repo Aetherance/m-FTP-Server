@@ -2,6 +2,9 @@
 #include"server_ctl.hpp"
 #include"server_trans.hpp"
 
+
+threadpool pool(5);
+
 void serverCtrl() {
     int lfd = Listen(2100,10);
     int epfd = epoll_create(1);
@@ -40,12 +43,14 @@ void serverCtrl() {
                         log(rev[i].data.fd,"send PORT");
                         PORT(rev[i].data.fd);
                     } else if(strcmp(buff,"UPLOAD") == 0) {
-                        char filename[50];
-                        while(read(rev[i].data.fd,filename,50) == -1);
-                        string strfilename(filename);
-                        string logmsg = "upload a file named " + strfilename; 
-                        log(rev[i].data.fd,logmsg.data());
+                        char filename[50] = "test";
+                        // while(read(rev[i].data.fd,filename,50) == -1);
+                        // string strfilename(filename);
+                        // string logmsg = "upload a file named " + strfilename; 
+                        // log(rev[i].data.fd,logmsg.data());
                         receive(actv_map[rev[i].data.fd],filename);
+                    } else if(strcmp(buff,"DOWNLOAD") == 0) {
+                        sendfileto(actv_map[rev[i].data.fd],"/home/user/CODE/FTP-server/root/test");
                     }
                 }
             }
@@ -53,9 +58,9 @@ void serverCtrl() {
     }
 }
 
-threadpool pool(5);
 int main() {
     pool.submit([](){ serverCtrl(); });
 
+    pool.stop();
     return 0;
 }

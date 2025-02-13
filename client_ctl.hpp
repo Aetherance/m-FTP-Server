@@ -26,15 +26,7 @@ int Connect(const char ip[16],unsigned int port) {
 class CommandLine
 {
 public:
-    CommandLine() { 
-        pos_echo = 2;
-        pthread_mutex_init(&mutex,nullptr);
-        struct winsize w;
-        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-        max_pos_echo = w.ws_row - 5;
-        isPASV = false;
-        isConnected = false;
-     }
+    CommandLine();
     void get();
     void echo(string);
     void parse();
@@ -67,6 +59,16 @@ void CommandLine::get() {
     }
 }
 
+CommandLine::CommandLine() { 
+    pos_echo = 2;
+    pthread_mutex_init(&mutex,nullptr);
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    max_pos_echo = w.ws_row - 5;
+    isPASV = false;
+    isConnected = false;
+}
+
 void CommandLine::echo(string data) {
     system("clear");
     cout<<"FTP server    "<<"当前模式  "<<(isPASV ? "被动" : "主动" )<< ":  " <<(isConnected ? "已连接" : "未连接" )<<endl;
@@ -91,7 +93,7 @@ void Message(string msg) {
 }
 
 void upload(int,char*);
-
+void download(int,string);
 void CommandLine::parse() {
     if(data == "q"||data == "exit") {
         system("clear");
@@ -115,8 +117,16 @@ void CommandLine::parse() {
         filesystem::path p_parse(path);
         send(server_fd,"UPLOAD",10,0);
         upload(active_mode_sock,path.data());
-        send(server_fd,p_parse.filename().string().c_str(),p_parse.filename().string().size(),0);
+        // send(server_fd,p_parse.filename().string().c_str(),p_parse.filename().string().size(),0);
         echo("文件上传成功!");
+    }
+    else if(data == "RETR"&&isPASV == false) {
+        string filename;
+        Message("请输入文件名");
+        getline(cin,filename);
+        send(server_fd,"DOWNLOAD",10,0);
+        download(active_mode_sock,filename);
+        echo("文件下载成功!");
     }
     else {
         Message("Command Not Found");
