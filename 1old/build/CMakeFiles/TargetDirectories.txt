@@ -1,0 +1,4 @@
+/home/user/CODE/FTP-server/old/build/CMakeFiles/client.dir
+/home/user/CODE/FTP-server/old/build/CMakeFiles/server.dir
+/home/user/CODE/FTP-server/old/build/CMakeFiles/edit_cache.dir
+/home/user/CODE/FTP-server/old/build/CMakeFiles/rebuild_cache.dir
