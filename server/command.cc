@@ -32,12 +32,17 @@ void CommandParser::parse(string CommandMsg,int fd) {
     target_fd = fd;
     vector<string>cmd = split(line);
     if(cmd[0] == "LIST") {
-        int pid = fork();
-        if(pid == 0) {
-            dup2(fd,1);
-            char *args[] = {(char*)"ls",(char*)"-l",(char*)"--color=yes",nullptr};
-            execvp("ls",args);
-        }
-        wait(nullptr);
+        pool->submit([this](){list();});
     }
+    
+}
+
+void CommandParser::list() {
+    int pid = fork();
+    if(pid == 0) {
+        dup2(target_fd,1);
+        char *args[] = {(char*)"ls",(char*)"-l",(char*)"--color=yes",nullptr};
+        execvp("ls",args);
+    }
+    wait(nullptr);
 }

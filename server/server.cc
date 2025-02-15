@@ -1,7 +1,8 @@
 #include"server.hpp"
 
+unique_ptr<threadpool>Server::pool = make_unique<threadpool>(4);
 Server::Server() {
-    
+
 }
 
 Server::~Server() {}
@@ -67,7 +68,6 @@ void Server::Epoll() {
                     close(ret_events[i].data.fd);
                 }
                 else if(read_stat > 0) {
-                    cout<<command_buff<<endl;
                     CommandParser parser;
                     parser.parse(command_buff,ret_events[i].data.fd);
                 }
