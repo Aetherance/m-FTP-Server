@@ -1,12 +1,6 @@
 {
     "files.associations": {
         "*.c": "c",
-        "*.tcc": "cpp",
-        "format": "cpp",
-        "istream": "cpp",
-        "vector": "cpp",
-        "cmath": "cpp",
-        "iostream": "cpp",
-        "string": "cpp"
+        "ostream": "cpp"
     }
 }

@@ -2,7 +2,8 @@
 
 unordered_set<string>command_set = {
     "LIST",
-    "PORT"
+    "PORT",
+    "STOR"
 };
 
 Client::Client() {}
@@ -51,10 +52,13 @@ bool Client::isCommand() {
     return true;
 }
 
+void upload(int, char[]);
 void Client::parse() {
     vector<string>cmd = split(line,' ');
     if(cmd[0] == "PORT") {
         setActive(cmd[1]);
+    } else if (cmd[0] == "STOR") {
+        upload(active_fd,cmd[1].data());
     }
 }
 
@@ -84,20 +88,35 @@ vector<string> split(string s,char ch = ' ')
 
 void Client::setActive(string port_str) {
     int port = atoi(port_str.c_str());
-    active_fd = socket(AF_INET,SOCK_STREAM,0);
+    int lfd = socket(AF_INET,SOCK_STREAM,0);
     sockaddr_in sin;
     memset(&sin,0,sizeof(sockaddr_in));
     sin.sin_family = AF_INET;
     sin.sin_port = htons(port);
     sin.sin_addr.s_addr = INADDR_ANY;
-    if(bind(active_fd,(sockaddr*)&sin,sizeof(sockaddr_in)) == -1) {
+    if(bind(lfd,(sockaddr*)&sin,sizeof(sockaddr_in)) == -1) {
         perror("bind");
     }
-    listen(active_fd,2);
+    listen(lfd,2);
     sockaddr_in server_sin;
     socklen_t server_sin_len = sizeof(sockaddr_in); 
     cout<<"正在连接至服务器..."<<endl;
-    if(accept(active_fd,(sockaddr*)&sin,&server_sin_len) != -1) {
-        cout<<"连接成功"<<endl;
+    if((active_fd = accept(lfd,(sockaddr*)&sin,&server_sin_len)) == -1) {
+        cout<<"连接失败"<<endl;
     }
+    close(lfd);
+}
+
+void upload(int sock,char filepath[]) {
+    int fd = open(filepath,O_RDONLY);
+    cout<<filepath<<endl;
+    if(fd == -1) {
+        perror("open");
+    }
+    if(sock == -1) {
+        perror("update sock");
+    }
+    if(sendfile(sock,fd,nullptr,UPLOAD_MAX) == -1) {
+        perror("sendfile");
+    };
 }

@@ -1,6 +1,7 @@
 #include"server.hpp"
 
 unique_ptr<threadpool>Server::pool = make_unique<threadpool>(4);
+unique_ptr<map<int,int>>Server::active_map = make_unique<map<int,int>>();
 Server::Server() {
 
 }
@@ -68,6 +69,8 @@ void Server::Epoll() {
                     log(ret_events[i].data.fd,"断开连接");
                     epoll_ctl(epfd,EPOLL_CTL_DEL,ret_events[i].data.fd,nullptr);
                     close(ret_events[i].data.fd);
+                    close((*active_map)[ret_events[i].data.fd]);
+                    active_map->erase(ret_events[i].data.fd);
                 }
                 else if(read_stat > 0) {
                     CommandParser parser;
@@ -86,4 +89,5 @@ void Server::Connect(int ctlsock,unsigned int port) {
     int trans_sock = socket(AF_INET,SOCK_STREAM,0);
     connect(trans_sock,(sockaddr*)&client_sin,client_sin_len); 
     log(ctlsock,"成功开启主动模式");
+    active_map->insert({ctlsock,trans_sock});
 }

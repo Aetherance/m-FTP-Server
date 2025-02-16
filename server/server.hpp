@@ -11,6 +11,7 @@
 #include<wait.h>
 #include<memory>
 #include<map>
+#include<filesystem>
 
 using namespace std;
 
@@ -36,12 +37,12 @@ public:
     void Epoll();
     void setNoblock(int);
     static unique_ptr<threadpool>pool;
+    static unique_ptr<map<int,int>>active_map;
         
 private:
     unsigned int ctl_port = 2100; // 控制信息传输端口
     int lis_fd;
     int epfd;
-    map<int,int>active_map;
     
     
 };
@@ -55,13 +56,12 @@ public:
     void parse(string,int);
     void list();
     void port();
+    void stor();
 private:
     string line;
     int target_fd;
     vector<string>cmd;
 
 };
-
-
 
 #endif
