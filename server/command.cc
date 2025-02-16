@@ -31,7 +31,6 @@ void CommandParser::parse(string CommandMsg,int fd) {
     line = CommandMsg;
     target_fd = fd;
     vector<string>cmd = split(line,' ');
-    cout<<cmd[1]<<endl;
     this->cmd = cmd;
     cout<<line<<endl;
     if(cmd[0] == "LIST") {
@@ -40,6 +39,8 @@ void CommandParser::parse(string CommandMsg,int fd) {
         pool->submit([this](){port();});
     } else if(cmd[0] == "STOR") {
         pool->submit([this](){stor();});
+    } else if(cmd[0] == "RETR") {
+        pool->submit([this](){retr();});
     }
     
     
@@ -75,4 +76,19 @@ void CommandParser::stor() {
         write(fd,buff,n);
     }
     close(fd);
+    send(target_fd,"200 文件上传成功",1024,0);
+}
+
+void CommandParser::retr() {
+    int sock = (*active_map)[target_fd];
+    log(sock,"正在下载一个文件");
+    string filepath = "../root/"+cmd[1];
+    int fd = open(filepath.c_str(),O_RDONLY);
+    if(fd == -1) {
+        perror("sendfile: open");
+    }
+    if(sendfile(sock,fd,nullptr,UPLOAD_MAX) == -1) {
+        perror("sendfile");
+    };
+    send(target_fd,"200 文件下载成功",1024,0);
 }

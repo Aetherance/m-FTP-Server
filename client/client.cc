@@ -3,7 +3,8 @@
 unordered_set<string>command_set = {
     "LIST",
     "PORT",
-    "STOR"
+    "STOR",
+    "RETR"
 };
 
 Client::Client() {}
@@ -52,13 +53,20 @@ bool Client::isCommand() {
     return true;
 }
 
-void upload(int, char[]);
+void upload(int, string);
+void download(int ,string);
 void Client::parse() {
     vector<string>cmd = split(line,' ');
     if(cmd[0] == "PORT") {
         setActive(cmd[1]);
     } else if (cmd[0] == "STOR") {
-        upload(active_fd,cmd[1].data());
+        thread([this,cmd](){
+            upload(active_fd,cmd[1]);
+        }).detach();
+    } else if(cmd[0] == "RETR") {
+        thread([this,cmd](){
+            download(active_fd,cmd[1]);
+        }).detach();
     }
 }
 
@@ -107,9 +115,9 @@ void Client::setActive(string port_str) {
     close(lfd);
 }
 
-void upload(int sock,char filepath[]) {
+void upload(int sock,string path) {
+    char *filepath = path.data();
     int fd = open(filepath,O_RDONLY);
-    cout<<filepath<<endl;
     if(fd == -1) {
         perror("open");
     }
@@ -120,3 +128,15 @@ void upload(int sock,char filepath[]) {
         perror("sendfile");
     };
 }
+
+void download(int sock,string filename) {
+    string filepath = "/home/user/CODE/FTP-server/build/" + filename;
+    int fd = open(filepath.data(),O_RDWR | O_APPEND | O_CREAT | O_EXCL , 0644 );
+    char buff[1024];
+    int n = 0;
+    while ((n = read(sock,buff,1024)) > 0) {
+        write(fd,buff,n);
+    }
+    close(fd);
+}
+

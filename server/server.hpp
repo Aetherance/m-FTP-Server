@@ -12,6 +12,9 @@
 #include<memory>
 #include<map>
 #include<filesystem>
+#include<sys/sendfile.h>
+
+#define UPLOAD_MAX 512000000
 
 using namespace std;
 
@@ -57,6 +60,7 @@ public:
     void list();
     void port();
     void stor();
+    void retr();
 private:
     string line;
     int target_fd;
