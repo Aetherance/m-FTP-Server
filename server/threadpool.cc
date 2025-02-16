@@ -4,7 +4,6 @@ threadpool::threadpool(int Size) {
     pthread_cond_init(&task_cond,nullptr);
     pthread_mutex_init(&mutex_wait_all,nullptr);
     pthread_cond_init(&cond_wait_all,nullptr);
-    // 一定要在创建线程之前初始化！ 创建线程后可能立刻就要使用锁
 
     pthread_t temp_ptd;
     for(int i = 0;i<Size;i++) {

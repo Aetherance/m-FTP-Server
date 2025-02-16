@@ -10,6 +10,7 @@
 #include<vector>
 #include<wait.h>
 #include<memory>
+#include<map>
 
 using namespace std;
 
@@ -31,7 +32,7 @@ public:
     ~Server();
     void Listen(int);
     int Accept();
-    void Connect();
+    void Connect(int , unsigned int);
     void Epoll();
     void setNoblock(int);
     static unique_ptr<threadpool>pool;
@@ -40,6 +41,8 @@ private:
     unsigned int ctl_port = 2100; // 控制信息传输端口
     int lis_fd;
     int epfd;
+    map<int,int>active_map;
+    
     
 };
 
@@ -51,9 +54,11 @@ public:
     vector<string>split(string,char);
     void parse(string,int);
     void list();
+    void port();
 private:
     string line;
     int target_fd;
+    vector<string>cmd;
 
 };
 

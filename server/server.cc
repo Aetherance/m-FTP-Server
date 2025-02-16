@@ -57,6 +57,7 @@ void Server::Epoll() {
                 ctl_fd_ev.data.fd = ctl_fd;
                 ctl_fd_ev.events = EPOLLIN;
 
+                log(ctl_fd,"与服务器建立了连接");
                 epoll_ctl(epfd,EPOLL_CTL_ADD,ctl_fd,&ctl_fd_ev);
             }
             else {
@@ -64,6 +65,7 @@ void Server::Epoll() {
                 memset(command_buff,0,1024);
                 int read_stat = read(ret_events[i].data.fd,command_buff,1024);
                 if(read_stat == 0) {
+                    log(ret_events[i].data.fd,"断开连接");
                     epoll_ctl(epfd,EPOLL_CTL_DEL,ret_events[i].data.fd,nullptr);
                     close(ret_events[i].data.fd);
                 }
@@ -74,4 +76,14 @@ void Server::Epoll() {
             }
         }
     }
+}
+
+void Server::Connect(int ctlsock,unsigned int port) {
+    sockaddr_in client_sin;
+    socklen_t client_sin_len = sizeof(sockaddr_in);
+    getpeername(ctlsock,(sockaddr*)&client_sin,&client_sin_len);
+    client_sin.sin_port = htons(port);
+    int trans_sock = socket(AF_INET,SOCK_STREAM,0);
+    connect(trans_sock,(sockaddr*)&client_sin,client_sin_len); 
+    log(ctlsock,"成功开启主动模式");
 }

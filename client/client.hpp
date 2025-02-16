@@ -5,6 +5,7 @@
 #include<fcntl.h>
 #include<unordered_set>
 #include<vector>
+#include<thread>
 
 using namespace std;
 
@@ -18,8 +19,14 @@ public:
     string ReadRespose();
     void ParseCommand();
     bool isCommand();
+    void setActive(string);
+    void parse();
 private:
     string line;
     int ctl_fd = 2100;
     string addr = "127.0.0.1";
+    bool isActive;
+    bool isPassive;
+    int active_fd;
+    int passive_fd;
 };

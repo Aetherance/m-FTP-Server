@@ -31,8 +31,11 @@ void CommandParser::parse(string CommandMsg,int fd) {
     line = CommandMsg;
     target_fd = fd;
     vector<string>cmd = split(line);
+    this->cmd = cmd;
     if(cmd[0] == "LIST") {
         pool->submit([this](){list();});
+    } else if(cmd[0] == "PORT") {
+        pool->submit([this](){port();});
     }
     
     
@@ -48,3 +51,9 @@ void CommandParser::list() {
     wait(nullptr);
 }
 
+void CommandParser::port() {
+    unsigned int port = atoi(cmd[1].c_str());
+    log(target_fd,"正在开启主动模式 端口:"+cmd[1]);
+    Connect(target_fd,port);
+    send(target_fd,"200 主动连接已建立",1024,0);
+}
