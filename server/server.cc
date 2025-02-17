@@ -2,8 +2,12 @@
 
 unique_ptr<threadpool>Server::pool = make_unique<threadpool>(4);
 unique_ptr<map<int,int>>Server::active_map = make_unique<map<int,int>>();
-Server::Server() {
+unique_ptr<map<int,int>>Server::passive_map = make_unique<map<int,int>>();
 
+short Server::trans_mode = -1;
+
+Server::Server() {
+    
 }
 
 Server::~Server() {}

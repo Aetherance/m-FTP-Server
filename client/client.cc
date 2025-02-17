@@ -4,13 +4,15 @@ unordered_set<string>command_set = {
     "LIST",
     "PORT",
     "STOR",
-    "RETR"
+    "RETR",
+    "PASV"
 };
+
+short trans_mode = -1;
 
 Client::Client() {}
 
 Client::~Client() {}
-
 
 void Client::Connect() {
     ctl_fd = socket(AF_INET,SOCK_STREAM,0);
@@ -39,6 +41,7 @@ void Client::ParseCommand() {
         SendRespose(line);
         parse();
         cout<<ReadRespose()<<endl;
+        cout<<"1"<<endl;
     }
 }
 
@@ -61,12 +64,22 @@ void Client::parse() {
         setActive(cmd[1]);
     } else if (cmd[0] == "STOR") {
         thread([this,cmd](){
-            upload(active_fd,cmd[1]);
+            if(trans_mode == 1) {
+                upload(active_fd,cmd[1]);
+            } else if(trans_mode == 0) {
+                upload(passive_fd,cmd[1]);
+            }
         }).detach();
     } else if(cmd[0] == "RETR") {
         thread([this,cmd](){
-            download(active_fd,cmd[1]);
+            if(trans_mode == 1) {
+                download(active_fd,cmd[1]);
+            } else if(trans_mode == 0) {
+                download(passive_fd,cmd[1]);
+            }
         }).detach();
+    } else if(cmd[0] == "PASV") {
+        setPassive();
     }
 }
 
@@ -95,6 +108,7 @@ vector<string> split(string s,char ch = ' ')
 }
 
 void Client::setActive(string port_str) {
+    trans_mode = 1;
     int port = atoi(port_str.c_str());
     int lfd = socket(AF_INET,SOCK_STREAM,0);
     sockaddr_in sin;
@@ -127,6 +141,7 @@ void upload(int sock,string path) {
     if(sendfile(sock,fd,nullptr,UPLOAD_MAX) == -1) {
         perror("sendfile");
     };
+    close(sock);
 }
 
 void download(int sock,string filename) {
@@ -140,3 +155,16 @@ void download(int sock,string filename) {
     close(fd);
 }
 
+void Client::setPassive() {
+    trans_mode = 0;
+    char buff[1024] = {};
+    read(ctl_fd,buff,1024);
+    vector<string>cmd = split(buff,' ');
+    passive_fd = socket(AF_INET,SOCK_STREAM,0);
+    unsigned int port = atoi(cmd[1].data());
+    sockaddr_in sin;
+    socklen_t len = sizeof(sockaddr_in);
+    getpeername(ctl_fd,(sockaddr*)&sin,&len);
+    sin.sin_port = htons(port);
+    connect(passive_fd,(sockaddr*)&sin,sizeof(sockaddr_in));
+}

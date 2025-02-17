@@ -11,6 +11,7 @@
 #include<wait.h>
 #include<memory>
 #include<map>
+#include<time.h>
 #include<filesystem>
 #include<sys/sendfile.h>
 
@@ -41,13 +42,14 @@ public:
     void setNoblock(int);
     static unique_ptr<threadpool>pool;
     static unique_ptr<map<int,int>>active_map;
+    static unique_ptr<map<int,int>>passive_map;
+    
+    static short trans_mode;    // 1 -> 主动  0 -> 被动  -1 -> 连接未建立
         
 private:
     unsigned int ctl_port = 2100; // 控制信息传输端口
     int lis_fd;
     int epfd;
-    
-    
 };
 
 class CommandParser : public Server
@@ -61,6 +63,7 @@ public:
     void port();
     void stor();
     void retr();
+    void pasv();
 private:
     string line;
     int target_fd;

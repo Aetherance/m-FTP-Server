@@ -25,6 +25,7 @@ public:
     bool isCommand();
     void setActive(string);
     void parse();
+    void setPassive();
 
 private:
     string line;
