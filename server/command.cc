@@ -13,14 +13,12 @@ vector<string> CommandParser::split(string s,char ch = ' ')
     while (pos< s.size())
     {
         int n = 0;
-        while (s[pos+n]!=ch&&pos+n<s.size())
-        {
+        while (s[pos+n]!=ch&&pos+n<s.size()) {
             n++;
         }
         result.push_back(s.substr(pos,n));
         pos += n;
-        while (s[pos] ==ch&&pos<s.size())
-        {
+        while (s[pos] ==ch&&pos<s.size()) {
             pos++;
         }
     }
@@ -44,7 +42,6 @@ void CommandParser::parse(string CommandMsg,int fd) {
     } else if(cmd[0] == "PASV") {
         pool->submit([this](){pasv();});
     }
-    
 }
 
 void CommandParser::list() {
@@ -78,13 +75,16 @@ void CommandParser::stor() {
     }
 
     log(sock,"正在上传一个文件 "+filename.filename().string());
-    int fd = open(filename.c_str(),O_WRONLY | O_CREAT | O_APPEND | O_TRUNC , 0644);
+    int fd = open(filename.c_str(),O_WRONLY | O_CREAT | O_TRUNC , 0644);
     char buff[1024];
     int n = 0;
     while ((n = read(sock,buff,1024)) > 0) {
         write(fd,buff,n);
+        cout<<buff<<n<<endl;
     }
     close(fd);
+    close(sock);
+    trans_mode = -1;
     send(target_fd,"200 文件上传成功",1024,0);
 }
 
@@ -104,9 +104,13 @@ void CommandParser::retr() {
     }
     if(sendfile(sock,fd,nullptr,UPLOAD_MAX) == -1) {
         perror("sendfile");
+        send(target_fd,"500 文件下载失败",1024,0);
+    } else {
+        send(target_fd,"200 文件下载成功",1024,0);
     };
     close(sock);
-    send(target_fd,"200 文件下载成功",1024,0);
+    trans_mode = -1;
+    
 }
 
 bool isUsable(unsigned int port) {
@@ -142,15 +146,20 @@ void CommandParser::pasv() {
     
     int lfd = socket(AF_INET,SOCK_STREAM,0);
     bind(lfd,(sockaddr*)&sin,sizeof(sockaddr_in));
-    listen(lfd,2);
+    listen(lfd,1);
     sockaddr_in client_sin;
     socklen_t len = sizeof(sockaddr_in);
     char msg[1024];
     sprintf(msg,"正在建立被动连接 %d",port);
     send(target_fd,msg,1024,0);
     int sock = accept(lfd,(sockaddr*)&client_sin,&len);
+    close(lfd);
+    if(sock == -1) {
+        send(target_fd,"510 被动连接建立失败",1024,0);
+    } else {
+        send(target_fd,"200 被动连接已建立",1024,0);
+    }
     log(target_fd,"正在建立被动连接");
     
     passive_map->insert({target_fd,sock});
-    send(target_fd,"200 被动连接已建立",1024,0);
 }

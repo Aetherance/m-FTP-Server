@@ -63,21 +63,21 @@ void Client::parse() {
     if(cmd[0] == "PORT") {
         setActive(cmd[1]);
     } else if (cmd[0] == "STOR") {
-        thread([this,cmd](){
+        // thread([this,cmd](){
             if(trans_mode == 1) {
                 upload(active_fd,cmd[1]);
             } else if(trans_mode == 0) {
                 upload(passive_fd,cmd[1]);
             }
-        }).detach();
+        // }).detach();
     } else if(cmd[0] == "RETR") {
-        thread([this,cmd](){
+        // thread([this,cmd](){
             if(trans_mode == 1) {
                 download(active_fd,cmd[1]);
             } else if(trans_mode == 0) {
                 download(passive_fd,cmd[1]);
             }
-        }).detach();
+        // }).detach();
     } else if(cmd[0] == "PASV") {
         setPassive();
     }
@@ -93,14 +93,12 @@ vector<string> split(string s,char ch = ' ')
     while (pos< s.size())
     {
         int n = 0;
-        while (s[pos+n]!=ch&&pos+n<s.size())
-        {
+        while (s[pos+n]!=ch&&pos+n<s.size()) {
             n++;
         }
         result.push_back(s.substr(pos,n));
         pos += n;
-        while (s[pos] ==ch&&pos<s.size())
-        {
+        while (s[pos] ==ch&&pos<s.size()) {
             pos++;
         }
     }
@@ -142,6 +140,7 @@ void upload(int sock,string path) {
         perror("sendfile");
     };
     close(sock);
+    trans_mode = -1;
 }
 
 void download(int sock,string filename) {
@@ -153,6 +152,8 @@ void download(int sock,string filename) {
         write(fd,buff,n);
     }
     close(fd);
+    close(sock);
+    trans_mode = -1;
 }
 
 void Client::setPassive() {
@@ -162,6 +163,7 @@ void Client::setPassive() {
     vector<string>cmd = split(buff,' ');
     passive_fd = socket(AF_INET,SOCK_STREAM,0);
     unsigned int port = atoi(cmd[1].data());
+    cout<<port<<endl;
     sockaddr_in sin;
     socklen_t len = sizeof(sockaddr_in);
     getpeername(ctl_fd,(sockaddr*)&sin,&len);

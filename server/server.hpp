@@ -24,10 +24,7 @@ class logger
 public:
     void log(char [],unsigned int ,const char * );
     void log(int ,const char * );
-    void log(int ,string );
-private:
-
-    
+    void log(int ,string );    
 };
 
 class Server : public logger
@@ -68,7 +65,6 @@ private:
     string line;
     int target_fd;
     vector<string>cmd;
-
 };
 
 #endif

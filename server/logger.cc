@@ -12,9 +12,9 @@ void logger::log(char ip[],unsigned int port,const char * event) {
     const char* color = "\033[0m";  // 绿
     const char* reset_color = "\033[0m";  // 重置
 
-    if (event == "connected") {
+    if (event == "与服务器建立了连接") {
         color = "\033[1m\033[032m";  // 蓝
-    } else if (event == "disconnected") {
+    } else if (event == "断开连接") {
         color = "\033[1m\033[31m";  // 红
     }
 
