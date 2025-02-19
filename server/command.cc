@@ -56,7 +56,6 @@ void CommandParser::list() {
 }
 
 void CommandParser::port() {
-    trans_mode = 1;
     send(target_fd,"200 主动连接已建立",1024,0);
     unsigned int port = atoi(cmd[1].c_str());
     log(target_fd,"正在开启主动模式 端口:"+cmd[1]);
@@ -68,9 +67,9 @@ void CommandParser::stor() {
     filesystem::path filename = "../root/" + filepath.filename().string();
     
     int sock = -1;
-    if(trans_mode == 1) {
+    if(active_map->count(target_fd)) {
         sock = (*active_map)[target_fd];
-    } else if(trans_mode == 0) {
+    } else if(passive_map->count(target_fd)) {
         sock = (*passive_map)[target_fd];
     }
 
@@ -84,15 +83,20 @@ void CommandParser::stor() {
     }
     close(fd);
     close(sock);
-    trans_mode = -1;
     send(target_fd,"200 文件上传成功",1024,0);
+
+    if(active_map->count(target_fd)) {
+        active_map->erase(target_fd);
+    } else if(passive_map->count(target_fd)) {
+        passive_map->erase(target_fd);
+    }
 }
 
 void CommandParser::retr() {
     int sock = -1;
-    if(trans_mode == 1) {
+    if(active_map->count(target_fd)) {
         sock = (*active_map)[target_fd];
-    } else if(trans_mode == 0) {
+    } else if(passive_map->count(target_fd)) {
         sock = (*passive_map)[target_fd];
     }
 
@@ -109,11 +113,17 @@ void CommandParser::retr() {
         send(target_fd,"200 文件下载成功",1024,0);
     };
     close(sock);
-    trans_mode = -1;
-    
+    close(fd);
+
+    if(active_map->count(target_fd)) {
+        active_map->erase(target_fd);
+    } else if(passive_map->count(target_fd)) {
+        passive_map->erase(target_fd);
+    }
 }
 
 bool isUsable(unsigned int port) {
+    lock_guard<mutex> guard(Server::mtx);
     int try_fd = socket(AF_INET,SOCK_STREAM,0);
     sockaddr_in sin;
     memset(&sin,0,sizeof(sockaddr_in));
@@ -136,7 +146,7 @@ unsigned int portGenerator() {
 }
 
 void CommandParser::pasv() {
-    trans_mode = 0;
+    
     unsigned int port = portGenerator();
     sockaddr_in sin;
     memset(&sin,0,sizeof(sockaddr_in));

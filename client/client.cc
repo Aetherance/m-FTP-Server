@@ -36,12 +36,12 @@ string Client::ReadRespose() {
 
 void Client::ParseCommand() {
     while(true) {
+        PrintInfo();
         getline(cin,line);
         if(!isCommand())continue;
         SendRespose(line);
         parse();
         cout<<ReadRespose()<<endl;
-        cout<<"1"<<endl;
     }
 }
 
@@ -49,6 +49,10 @@ vector<string> split(string,char);
 
 bool Client::isCommand() {
     vector<string>cmd = split(line,' ');
+    if((cmd[0] == "PORT" || cmd[0] == "RETR" || cmd[0] == "STOR") && cmd.size() < 2) {
+        cout<<"参数数量错误"<<endl;
+        return false;
+    }
     if(!command_set.count(cmd[0])) {
         cout<<"Command Not Found"<<endl;
         return false;
@@ -63,21 +67,21 @@ void Client::parse() {
     if(cmd[0] == "PORT") {
         setActive(cmd[1]);
     } else if (cmd[0] == "STOR") {
-        // thread([this,cmd](){
+        thread([this,cmd](){
             if(trans_mode == 1) {
                 upload(active_fd,cmd[1]);
             } else if(trans_mode == 0) {
                 upload(passive_fd,cmd[1]);
             }
-        // }).detach();
+        }).detach();
     } else if(cmd[0] == "RETR") {
-        // thread([this,cmd](){
+        thread([this,cmd](){
             if(trans_mode == 1) {
                 download(active_fd,cmd[1]);
             } else if(trans_mode == 0) {
                 download(passive_fd,cmd[1]);
             }
-        // }).detach();
+        }).detach();
     } else if(cmd[0] == "PASV") {
         setPassive();
     }
@@ -125,6 +129,7 @@ void Client::setActive(string port_str) {
         cout<<"连接失败"<<endl;
     }
     close(lfd);
+    active_port = port;
 }
 
 void upload(int sock,string path) {
@@ -163,10 +168,25 @@ void Client::setPassive() {
     vector<string>cmd = split(buff,' ');
     passive_fd = socket(AF_INET,SOCK_STREAM,0);
     unsigned int port = atoi(cmd[1].data());
-    cout<<port<<endl;
+    passive_port = port;
     sockaddr_in sin;
     socklen_t len = sizeof(sockaddr_in);
     getpeername(ctl_fd,(sockaddr*)&sin,&len);
     sin.sin_port = htons(port);
     connect(passive_fd,(sockaddr*)&sin,sizeof(sockaddr_in));
+}
+
+void Client::PrintInfo() {
+    cout<<"FTP Client ";
+    if(trans_mode == -1) {
+        cout<<"连接未建立";
+    }
+    else if(trans_mode == 1) {
+        cout<<"\033[1m\033[034m"<<"主动模式 "<<"\033[0m"<<"端口 "<<active_port;
+    }
+    else if(trans_mode == 0) {
+        cout<<"\033[1m\033[032m"<<"被动模式 "<<"\033[0m"<<"端口 "<<passive_port;
+    }
+    
+    cout<<": ";
 }

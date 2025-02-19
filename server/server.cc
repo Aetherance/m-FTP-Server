@@ -1,10 +1,9 @@
 #include"server.hpp"
 
-unique_ptr<threadpool>Server::pool = make_unique<threadpool>(4);
+unique_ptr<threadpool>Server::pool = make_unique<threadpool>(10);
 unique_ptr<map<int,int>>Server::active_map = make_unique<map<int,int>>();
 unique_ptr<map<int,int>>Server::passive_map = make_unique<map<int,int>>();
-
-short Server::trans_mode = -1;
+mutex Server::mtx;
 
 Server::Server() {
     

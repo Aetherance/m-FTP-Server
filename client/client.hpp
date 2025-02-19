@@ -26,6 +26,7 @@ public:
     void setActive(string);
     void parse();
     void setPassive();
+    void PrintInfo();
 
 private:
     string line;
@@ -35,4 +36,6 @@ private:
     bool isPassive;
     int active_fd;
     int passive_fd;
+    unsigned int active_port;
+    unsigned int passive_port;
 };

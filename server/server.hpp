@@ -14,6 +14,7 @@
 #include<time.h>
 #include<filesystem>
 #include<sys/sendfile.h>
+#include<mutex>
 
 #define UPLOAD_MAX 512000000
 
@@ -41,8 +42,8 @@ public:
     static unique_ptr<map<int,int>>active_map;
     static unique_ptr<map<int,int>>passive_map;
     
-    static short trans_mode;    // 1 -> 主动  0 -> 被动  -1 -> 连接未建立
-        
+    static mutex mtx;
+   
 private:
     unsigned int ctl_port = 2100; // 控制信息传输端口
     int lis_fd;
