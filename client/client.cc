@@ -94,8 +94,7 @@ vector<string> split(string s,char ch = ' ')
     while (s[pos]==ch)
         pos++;
     
-    while (pos< s.size())
-    {
+    while (pos< s.size()) {
         int n = 0;
         while (s[pos+n]!=ch&&pos+n<s.size()) {
             n++;
@@ -133,6 +132,7 @@ void Client::setActive(string port_str) {
 }
 
 void upload(int sock,string path) {
+    trans_mode = -1;
     char *filepath = path.data();
     int fd = open(filepath,O_RDONLY);
     if(fd == -1) {
@@ -145,10 +145,10 @@ void upload(int sock,string path) {
         perror("sendfile");
     };
     close(sock);
-    trans_mode = -1;
 }
 
 void download(int sock,string filename) {
+    trans_mode = -1;
     string filepath = "/home/user/CODE/FTP-server/build/" + filename;
     int fd = open(filepath.data(),O_RDWR | O_APPEND | O_CREAT | O_EXCL , 0644 );
     char buff[1024];
@@ -158,7 +158,6 @@ void download(int sock,string filename) {
     }
     close(fd);
     close(sock);
-    trans_mode = -1;
 }
 
 void Client::setPassive() {
