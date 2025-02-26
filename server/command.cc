@@ -56,7 +56,7 @@ void CommandParser::list() {
 }
 
 void CommandParser::port() {
-    send(target_fd,"200 主动连接已建立",1024,0);
+    send(target_fd,"200 主动连接已建立\r\n",1024,0);
     unsigned int port = atoi(cmd[1].c_str());
     log(target_fd,"正在开启主动模式 端口:"+cmd[1]);
     Connect(target_fd,port);
@@ -83,7 +83,7 @@ void CommandParser::stor() {
     }
     close(fd);
     close(sock);
-    send(target_fd,"200 文件上传成功",1024,0);
+    send(target_fd,"200 文件上传成功\r\n",1024,0);
 
     if(active_map->count(target_fd)) {
         active_map->erase(target_fd);
@@ -108,9 +108,9 @@ void CommandParser::retr() {
     }
     if(sendfile(sock,fd,nullptr,UPLOAD_MAX) == -1) {
         perror("sendfile");
-        send(target_fd,"500 文件下载失败",1024,0);
+        send(target_fd,"500 文件下载失败\r\n",1024,0);
     } else {
-        send(target_fd,"200 文件下载成功",1024,0);
+        send(target_fd,"200 文件下载成功\r\n",1024,0);
     };
     close(sock);
     close(fd);
